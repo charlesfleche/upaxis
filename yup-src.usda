@@ -1,0 +1,19 @@
+#usda 1.0
+(
+    defaultPrim = "SkelRoot"
+	startTimeCode = 1
+	endTimeCode = 10
+	metersPerUnit = 1
+	upAxis = "Y"
+
+    subLayers = [
+        @./zup-reference.usda@
+    ]
+)
+
+over "SkelRoot"
+{
+    float3 xformOp:rotateXYZ:compensation = (-90, 0, 0)
+    uniform token[] xformOpOrder = ["xformOp:rotateXYZ:compensation"]
+}
+
