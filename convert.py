@@ -1,5 +1,10 @@
-from pxr import Usd
+from pxr import Gf, Usd, UsdGeom
 
-s = Usd.Stage.Open("zup-dst.usda")
+s = Usd.Stage.Open("yup-src-reference.usda")
+s.Export("out-yup-src.usda")
 
-s.Save()
+UsdGeom.SetStageUpAxis(s, "Z")
+
+
+
+s.Export("out-zup-dst.usda")
