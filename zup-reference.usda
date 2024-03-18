@@ -33,6 +33,9 @@ def SkelRoot "SkelRoot" (
     prepend apiSchemas = ["SkelBindingAPI"]
 )
 {
+	float3 xformOp:rotateXYZ:src = (0, 0, 15)
+    uniform token[] xformOpOrder = ["xformOp:rotateXYZ:src"]
+
 	def Skeleton "Skeleton" (
 		prepend apiSchemas = ["SkelBindingAPI"]
 	)
