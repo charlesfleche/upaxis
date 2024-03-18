@@ -15,5 +15,29 @@ over "SkelRoot"
 {
     float3 xformOp:rotateXYZ:compensation = (-90, 0, 0)
     uniform token[] xformOpOrder = ["xformOp:rotateXYZ:compensation"]
-}
 
+    over "Skeleton"
+    {
+        uniform matrix4d[] bindTransforms = [(
+                (1.0, 0.0,  0.0, 0.0),
+                (0.0, 0.0, -1.0, 0.0),
+                (0.0, 1.0,  0.0, 0.0),
+                (0.0, 1.0,  0.0, 1.0)
+            ), (
+                (1.0, 0.0,  0.0, 0.0),
+                (0.0, 0.0, -1.0, 0.0),
+                (0.0, 1.0,  0.0, 0.0),
+                (0.0, 2.0,  0.0, 1.0)
+        )]
+    }
+
+    over "Mesh"
+    {
+        matrix4d primvars:skel:geomBindTransform = (
+			(1.0, 0.0,  0.0, 0.0),
+            (0.0, 0.0, -1.0, 0.0),
+            (0.0, 1.0,  0.0, 0.0),
+            (0.0, 0.0,  0.0, 1.0)
+		)
+    }
+}

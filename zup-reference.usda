@@ -98,11 +98,5 @@ def SkelRoot "SkelRoot" (
 			interpolation = "vertex"
 			elementSize = 1
 		)
-#		matrix4d primvars:skel:geomBindTransform = (
-#			(1, 0, 0, 0),
-#			(0, 1, 0, 0),
-#			(0, 0, 1, 0),
-#			(0, 0, 0, 1)
-#		)
 	}
 }
