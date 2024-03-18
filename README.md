@@ -10,7 +10,21 @@
 
 ## Files
 
-- [zup-reference.usda](zup-reference.usda) the scene as it should be in the Engine editor, Z-Up
-- [yup-src.usda](yup-src.usda) the scene as it should be edited in the DCC:
+In all scene a tetrahedron at the base of the origin (`Ox`, `oY` and `oZ` edges are of size = 1) represents the coordinate system:
+- coordinates along x are red
+- coordinates along y are green
+- coordinates along z are blue
+
+- [`zup-reference.usda`](zup-reference.usda) the scene as it should be in the Engine editor, Z-Up
+- [`yup-src.usda`](yup-src.usda) the scene as it should be edited in the DCC:
   - Coordinate system is Y-Up
   - But skinning / animation is done in Z-Up so it is edited in the Engine coordinate system
+  - The Axis Compensation matrix `xformOp:rotateXYZ:compensation` (Y-Up to Z-Up) is added to the root object `SkelRoot`
+- [`zup-dst.usda`](zup-dst.usda) the scene as export from DCC then imported to the Engine
+  - It sublayers `yup-src.usda` to simulate an export from DCC
+  - The Axis Compensation matrix is reverted by applying its inverse `!invert!xformOp:rotateXYZ:compensation`
+  - The stage up axis is simply set to Z
+
+The `offset-*` versions of those files introduces a few extra transformations:
+
+## Solution to 
