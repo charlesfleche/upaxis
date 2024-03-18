@@ -1,6 +1,6 @@
 from pxr import Gf, Usd, UsdGeom
 
-def convert_Xformable(x):
+def convert_Xformable(x, Tde):
     m = x.GetLocalTransformation()
     assert(m)
 
@@ -25,7 +25,7 @@ def convert_Xformable(x):
     assert(op)
 
 
-def convert_PointBased(pb):
+def convert_PointBased(pb, Tde):
     def convert(*vec):
         m = Gf.Matrix4d().SetTranslate(Gf.Vec3d(*vec))
         m = Tde * m * Tde.GetInverse()
@@ -42,18 +42,37 @@ s.Export("out-yup-src.usda")
 
 UsdGeom.SetStageUpAxis(s, "Z")
 
-Rde = Gf.Rotation(Gf.Vec3d(1, 0, 0), -90)  # Rotation DCC to Engine
-Tde = Gf.Matrix4d().SetRotate(Rde)  # Transformation DCC to Engine
+_Rde = Gf.Rotation(Gf.Vec3d(1, 0, 0), -90)  # Rotation DCC to Engine
+_Tde = Gf.Matrix4d().SetRotate(_Rde)  # Transformation DCC to Engine
 
-for p in s.Traverse():
+TdeStack = []
+
+it = iter(Usd.PrimRange.PreAndPostVisit(s.GetPseudoRoot()))
+
+for p in it:
+    if p == s.GetPseudoRoot():
+        continue
+
+    assert(p)
+
+    if it.IsPostVisit():
+        print(p, "Pop")
+        TdeStack.pop()
+        continue
+    else:
+        print(p, "Append")
+        TdeStack.append(_Tde)
+
     if p.GetName() == "Axis":
         continue
 
+    curTde = TdeStack[-1]
+
     if x := UsdGeom.Xformable(p):
-        convert_Xformable(x)
+        convert_Xformable(x, curTde)
     
     if pb := UsdGeom.PointBased(p):
-        convert_PointBased(pb)
+        convert_PointBased(pb, curTde)
 
 
 s.Export("out-zup-dst.usda")
