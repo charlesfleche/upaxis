@@ -1,7 +1,8 @@
 from pxr import Gf, Usd, UsdGeom
 
-def convert_xformable(x):
+def convert_Xformable(x):
     m = x.GetLocalTransformation()
+    assert(m)
 
     assert(x.ClearXformOpOrder())
 
@@ -24,6 +25,18 @@ def convert_xformable(x):
     assert(op)
 
 
+def convert_PointBased(pb):
+    def convert(*vec):
+        m = Gf.Matrix4d().SetTranslate(Gf.Vec3d(*vec))
+        m = Tde * m * Tde.GetInverse()
+        return Gf.Transform(m).GetTranslation()
+
+    a = pb.GetPointsAttr()
+    assert(a)
+
+    assert(a.Set([convert(vec) for vec in a.Get()]))
+
+
 s = Usd.Stage.Open("yup-src-reference.usda")
 s.Export("out-yup-src.usda")
 
@@ -37,7 +50,10 @@ for p in s.Traverse():
         continue
 
     if x := UsdGeom.Xformable(p):
-        convert_xformable(x)
+        convert_Xformable(x)
+    
+    if pb := UsdGeom.PointBased(p):
+        convert_PointBased(pb)
 
 
 s.Export("out-zup-dst.usda")
