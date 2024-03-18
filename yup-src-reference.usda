@@ -22,7 +22,7 @@ over "NotCompensated"
 over "SkelRoot"
 {
     float3 xformOp:rotateXYZ:compensation = (-90, 0, 0)
-    uniform token[] xformOpOrder = ["xformOp:rotateXYZ:compensation", "xformOp:rotateXYZ:src"]
+    uniform token[] xformOpOrder = ["xformOp:rotateXYZ:compensation", "xformOp:transform:zup"]
 
     over "Skeleton"
     {

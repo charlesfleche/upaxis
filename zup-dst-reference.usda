@@ -13,5 +13,5 @@
 
 over "SkelRoot"
 {
-    uniform token[] xformOpOrder = ["xformOp:rotateXYZ:compensation", "!invert!xformOp:rotateXYZ:compensation"]
+    uniform token[] xformOpOrder = ["!invert!xformOp:rotateXYZ:compensation", "xformOp:rotateXYZ:compensation", "xformOp:transform:zup"]
 }
