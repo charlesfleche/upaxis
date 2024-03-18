@@ -11,6 +11,14 @@
     ]
 )
 
+over "NotCompensated"
+{
+	float3 xformOp:translate = (0, 0, -1)
+    uniform token[] xformOpOrder = ["xformOp:translate"]
+
+    point3f[] points = [(0, 0, 0), (.5, 0, 0), (0, 0, -1)]
+}
+
 over "SkelRoot"
 {
     float3 xformOp:rotateXYZ:compensation = (-90, 0, 0)
