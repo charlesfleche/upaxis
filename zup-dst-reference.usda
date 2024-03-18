@@ -7,7 +7,7 @@
 	upAxis = "Z"
 
     subLayers = [
-        @./yup-src.usda@
+        @./yup-src-reference.usda@
     ]
 )
 
