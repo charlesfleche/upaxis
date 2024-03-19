@@ -1,4 +1,4 @@
-from pxr import Gf, Usd, UsdGeom
+from pxr import Gf, Usd, UsdGeom, UsdSkel
 
 def convert_Xformable(x, Tde):
     m = x.GetLocalTransformation()
@@ -37,12 +37,18 @@ def convert_PointBased(pb, Tde):
     assert(a.Set([convert(vec) for vec in a.Get()]))
 
 
+def convert_Skeleton(sk, Tde):
+    if a := sk.GetRestTransformsAttr():
+        if ms := a.Get():
+            a.Set([Tde * m * Tde.GetInverse() for m in ms])
+
+
 def is_compensated(x):
     op = x.GetXformOp(UsdGeom.XformOp.TypeRotateXYZ, opSuffix="compensation")
     return bool(op)
 
 
-def decompensate(x):
+def decompensate_Xformable(x):
     ops = x.GetOrderedXformOps()
     
     op = x.AddXformOp(UsdGeom.XformOp.TypeRotateXYZ, opSuffix="compensation", isInverseOp=True)
@@ -58,17 +64,31 @@ def decompensate(x):
     assert(a.Set([op.GetOpName() for op in ops]))
 
 
+def decompensate_SkelBindingAPI(sb, Tde):
+    if a := sb.GetGeomBindTransformAttr():
+        if m := a.Get():
+            a.Set(m * Tde.GetInverse())
+
+
+def decompensate_Skeleton(sk, Tde):
+    if a := sk.GetBindTransformsAttr():
+        if ms := a.Get():
+            print(sk, Tde, ms)
+            a.Set([m * Tde.GetInverse() for m in ms])
+
+
 s = Usd.Stage.Open("yup-src-reference.usda")
 s.Export("out-yup-src.usda")
 
 UsdGeom.SetStageUpAxis(s, "Z")
 
-_Rde = Gf.Rotation(Gf.Vec3d(1, 0, 0), -90)  # Rotation DCC to Engine
-_Tde = Gf.Matrix4d().SetRotate(_Rde)  # Transformation DCC to Engine
+_Rde = Gf.Rotation(Gf.Vec3d(1, 0, 0), -90)  # Z-Up to Y-Up
+_Tde = Gf.Matrix4d().SetRotate(_Rde)  # Transformation Z-Up to Y-Up
 
 _Identity = Gf.Matrix4d().SetIdentity()
 
-curTde = _Tde
+curLocalTde = _Tde
+curGlobalTde = _Identity
 
 it = iter(Usd.PrimRange.PreAndPostVisit(s.GetPseudoRoot()))
 
@@ -81,18 +101,35 @@ for p in it:
     if p.GetName() == "Axis":
         continue
 
+    x = UsdGeom.Xformable(p)
+    if x and is_compensated(x):
+        if it.IsPostVisit():
+            curLocalTde = _Tde
+            curGlobalTde = _Identity
+        else:
+            curLocalTde = _Identity
+            curGlobalTde = _Tde
+
+            # For the demo we target an existing xformOp in the Prim, but in
+            # practice we'd pass the curGlobalTde
+            # decompensate_Xformable(x, curGlobalTde)
+            decompensate_Xformable(x)
+
+    if it.IsPostVisit():
+        continue
+
     if x := UsdGeom.Xformable(p):
-        if is_compensated(x):
-            if it.IsPostVisit():
-                curTde = _Tde
-                continue
-            else:
-                decompensate(x)
-                curTde = _Identity
-        convert_Xformable(x, curTde)
+        convert_Xformable(x, curLocalTde)
     
     if pb := UsdGeom.PointBased(p):
-        convert_PointBased(pb, curTde)
+        convert_PointBased(pb, curLocalTde)
+    
+    if sb := UsdSkel.BindingAPI(p):
+        decompensate_SkelBindingAPI(sb, curGlobalTde)
+
+    if sk := UsdSkel.Skeleton(p):
+        decompensate_Skeleton(sk, curGlobalTde)
+        convert_Skeleton(sk, curLocalTde)
 
 
 s.Export("out-zup-dst.usda")

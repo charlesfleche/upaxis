@@ -27,4 +27,32 @@ In all scene a tetrahedron at the base of the origin (`Ox`, `oY` and `oZ` edges 
 
 The `offset-*` versions of those files introduces a few extra transformations:
 
-## Solution to 
+## Solution
+
+d = DCC
+e = Engine
+
+g = global matrix
+
+M = matrix
+P = other matrix local to M
+
+Mdg = Md0 * Md1 * ... * Mdn
+Mdg = Ted * Me0 * Me1 * ... * Men
+Mdg = Ted * Meg
+
+Meg = Tde * Mdg * Tde-1
+Meg = Tde * [Ted * Meg] * Tde-1
+Meg = Tde * [Ted * Me0 * Me1 * ... * Men] * Tde-1
+Meg = Tde * [Ted * Me0] * Me1 * ... * Men * Tde-1
+Meg = Tde * Ted-1 * [Ted * Me0] * Me1 * ... * Men * Tde-1
+Meg = Tde * Me0 * Me1 * ... * Men * Tde-1
+Meg =  Me0 * Me1 * ... * Men  # if Tde == Identity
+
+In practice:
+  - Compensate
+    - Local matrices marqued as ALREADY_COMPENSATED then don't compensate descendant matrices
+      - Entity Xform
+  - Global matrices
+    - Mesh GeomBindTransforms
+    - Skeleton bindTransforms
