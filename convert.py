@@ -73,7 +73,6 @@ def decompensate_SkelBindingAPI(sb, Tde):
 def decompensate_Skeleton(sk, Tde):
     if a := sk.GetBindTransformsAttr():
         if ms := a.Get():
-            print(sk, Tde, ms)
             a.Set([m * Tde.GetInverse() for m in ms])
 
 
