@@ -27,12 +27,19 @@ class Compensator:
         self._compensation_matrix = Gf.Matrix4d().SetIdentity()
         self._compensation_matrices = []
     
-    def __call__(self, mat: Gf.Matrix4d) -> Gf.Matrix4d:
+
+    def compensate_local_matrix(self, mat: Gf.Matrix4d) -> Gf.Matrix4d:
         ret = self._compensation_matrix.GetInverse() * mat * self._compensation_matrix
 
         logging.debug("compensating matrix from\n%r\nto\n%r", mat, ret)
 
         return ret
+
+    def compensate_local_vector(self, vec: Gf.Vec3d) -> Gf.Vec3d:
+        mat = Gf.Matrix4d().SetTranslate(vec)
+        mat = self.compensate_local_matrix(mat)
+        return mat.Transform(_VECTOR_ORIGIN)
+
 
     def push_compensation_matrix(self, mat: Gf.Matrix4d) -> None:
         mat = Gf.Matrix4d(mat)  # Ensure mat is copied, just not referenced
@@ -40,6 +47,7 @@ class Compensator:
         self._compensation_matrices.append(mat)
 
         logging.debug("pushing compensation matrix\r%r\nnew compensation matrix\n%r", mat, self._compensation_matrix)
+
 
     def pop_compensation_matrix(self) -> None:
         mat = self._compensation_matrices.pop()
@@ -51,20 +59,15 @@ class Compensator:
         logging.debug("popping compensation matrix\n%r\nnew compensation matrix\n%r", mat, self._compensation_matrix)
 
 
-def compensate_xformable(xformable: UsdGeom.Xformable, compensate: Compensator) -> None:
+def compensate_xformable(xformable: UsdGeom.Xformable, compensator: Compensator) -> None:
     mat = get_xformable_payload_matrix(xformable)
     op = xformable.MakeMatrixXform()
-    op.Set(compensate(mat))
+    op.Set(compensator.compensate_local_matrix(mat))
 
 
-def compensate_pointbased(point_based: UsdGeom.PointBased, compensate: Compensator) -> None:
-    def compensate_vector(*vec):
-        mat = Gf.Matrix4d().SetTranslate(Gf.Vec3d(*vec))
-        mat = compensate(mat)
-        return mat.Transform(_VECTOR_ORIGIN)
-
+def compensate_pointbased(point_based: UsdGeom.PointBased, compensator: Compensator) -> None:
     points = point_based.GetPointsAttr()
-    points.Set([compensate_vector(vec) for vec in points.Get()])
+    points.Set([compensator.compensate_local_vector(Gf.Vec3d(*vec)) for vec in points.Get()])
 
 
 def get_axis_compensation_rotation_transform(src: Token, dst: Token) -> Gf.Matrix4d:
