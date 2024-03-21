@@ -1,0 +1,78 @@
+#usda 1.0
+(
+	defaultPrim = "CompensateDecimetersToMeters"
+	endTimeCode = 10
+	metersPerUnit = .1
+	upAxis = "Y"
+)
+
+def "Axis_ExcludedFromCompensation" (
+	references = @./axis.usda@
+)
+{
+}
+
+def Xform "CompensateUnits"
+{
+	matrix4d xformOp:transform:compensation = (
+		(10,  0,  0, 0),
+        ( 0, 10,  0, 0),
+        ( 0,  0, 10, 0),
+        ( 0,  0,  0, 1)
+	)
+    uniform token[] xformOpOrder = ["xformOp:transform:compensation"]
+
+	def Mesh "UpwardTriangle_CompensateAxis"
+	{
+		# Move Z to Y: rotation -90 degrees around the X axis
+		matrix4d xformOp:transform:compensation = (
+			( 1, 0,  0, 0),
+			( 0, 0, -1, 0),
+			( 0, 1,  0, 0),
+			(-0, 0,  0, 1)
+		)
+		float3 xformOp:translate:payload = (0, 0, 1)
+
+		uniform token[] xformOpOrder = ["xformOp:transform:compensation", "xformOp:translate:payload"]
+
+		int[] faceVertexCounts = [3]
+    	int[] faceVertexIndices = [0, 1, 2]
+    	point3f[] points = [(0, 0, 0), (.5, 0, 0), (0, 0, 1)]
+	}
+}
+
+def Xform "CompensateAxis"
+{
+	# Move Z to Y: rotation -90 degrees around the X axis
+	matrix4d xformOp:transform:compensation = (
+		( 1, 0,  0, 0),
+		( 0, 0, -1, 0),
+		( 0, 1,  0, 0),
+		(-0, 0,  0, 1)
+	)
+	
+    uniform token[] xformOpOrder = ["xformOp:transform:compensation"]
+
+	def Mesh "DownwardTriangle_CompensateUnits"
+	{
+		matrix4d xformOp:transform:compensation = (
+			(10,  0,  0, 0),
+			( 0, 10,  0, 0),
+			( 0,  0, 10, 0),
+			( 0,  0,  0, 1)
+		)
+
+		float3 xformOp:rotateXYZ:payload = (180, 0, 0)
+		float3 xformOp:translate:payload = (0, 0, 1)
+		
+		uniform token[] xformOpOrder = [
+			"xformOp:transform:compensation",
+			"xformOp:rotateXYZ:payload",
+			"xformOp:translate:payload"
+		]
+
+		int[] faceVertexCounts = [3]
+    	int[] faceVertexIndices = [0, 2, 1]
+    	point3f[] points = [(0, 0, 0), (.5, 0, 0), (0, 0, 1)]
+	}
+}
