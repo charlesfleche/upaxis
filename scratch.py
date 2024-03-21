@@ -55,3 +55,37 @@ b1 = b1.GetMatrix()
 for bt in (b0, b1):
     m = bt * GBT.GetMatrix()
     print(bt, "->", m, "->", m.Transform(O))
+
+
+print()
+
+r = Gf.Rotation(Gf.Vec3d(0, 0, 1), 90)
+t = Gf.Vec3d( 0, 1, 0)
+
+p0 = Gf.Vec3d( 0, 0, 0)
+p1 = Gf.Vec3d(.5, 0, 0)
+p2 = Gf.Vec3d( 0, 1, 0)
+
+GBT = Gf.Transform()
+GBT.SetRotation(r)
+GBT.SetTranslation(t)
+
+print("GBT ->", GBT.GetMatrix())
+print()
+
+for p in (p0, p1, p2):
+    print(p, "->", GBT.GetMatrix().Transform(p))
+
+print()
+
+b0 = Gf.Transform()
+b0.SetTranslation(p0)
+b0 = b0.GetMatrix()
+
+b1 = Gf.Transform()
+b1.SetTranslation(p2)
+b1 = b1.GetMatrix()
+
+for bt in (b0, b1):
+    m = bt * GBT.GetMatrix()
+    print(bt, "->", m, "->", m.Transform(O))
