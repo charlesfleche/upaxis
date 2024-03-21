@@ -22,18 +22,27 @@ _AXIS_COMPENSATION_ROTATION = {
     (UsdGeom.Tokens.z, UsdGeom.Tokens.z): _MATRIX_IDENTITY,                               # From Z-Up to Z-Up
 }
 
+
+def _compensate_matrix(compensation_matrix: Gf.Matrix4d, matrix_to_compensate: Gf.Matrix4d) -> Gf.Matrix4d:
+    ret = compensation_matrix.GetInverse() * matrix_to_compensate * compensation_matrix
+    logging.debug("compensating matrix from\n%r\nto\n%r", matrix_to_compensate, ret)
+    return ret
+
+
 class Compensator:
     def __init__(self):
         self._compensation_matrix = Gf.Matrix4d().SetIdentity()
         self._compensation_matrices = []
-    
+
+
+    def compensate_global_matrix(self, mat: Gf.Matrix4d) -> Gf.Matrix4d:
+        global_compensation_matrix = self._compensation_matrices[0]
+        return _compensate_matrix(global_compensation_matrix, mat)
+        
 
     def compensate_local_matrix(self, mat: Gf.Matrix4d) -> Gf.Matrix4d:
-        ret = self._compensation_matrix.GetInverse() * mat * self._compensation_matrix
+        return _compensate_matrix(self._compensation_matrix, mat)
 
-        logging.debug("compensating matrix from\n%r\nto\n%r", mat, ret)
-
-        return ret
 
     def compensate_local_vector(self, vec: Gf.Vec3d) -> Gf.Vec3d:
         mat = Gf.Matrix4d().SetTranslate(vec)
