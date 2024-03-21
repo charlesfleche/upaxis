@@ -1,9 +1,11 @@
 #!python
 
 import argparse
+import logging
+
 from pathlib import Path
 
-from pxr import Gf, Tf, Usd, UsdGeom, UsdSkel
+from pxr import Gf, Usd, UsdGeom, UsdSkel
 
 Token = str
 
@@ -12,11 +14,6 @@ _VECTOR_ORIGIN = Gf.Vec3d(0, 0, 0)
 _MATRIX_IDENTITY = Gf.Matrix4d().SetIdentity()
 _MATRIX_ROTATION_POSITIVE_90_DEGREES_AROUND_X = Gf.Matrix4d().SetRotate(Gf.Rotation(Gf.Vec3d(1, 0, 0), 90))
 _MATRIX_ROTATION_NEGATIVE_90_DEGREES_AROUND_X = _MATRIX_ROTATION_POSITIVE_90_DEGREES_AROUND_X.GetInverse()
-
-_AXIS_NAME_TO_TOKEN = {
-    "Y": UsdGeom.Tokens.y,
-    "Z": UsdGeom.Tokens.z,
-}
 
 _AXIS_COMPENSATION_ROTATION = {
     (UsdGeom.Tokens.y, UsdGeom.Tokens.y): _MATRIX_IDENTITY,                               # From Y-Up to Y-Up
@@ -31,19 +28,31 @@ class Compensator:
         self._compensation_matrices = []
     
     def __call__(self, mat: Gf.Matrix4d) -> Gf.Matrix4d:
-        return self._compensation_matrix.GetInverse() * mat * self._compensation_matrix
+        ret = self._compensation_matrix.GetInverse() * mat * self._compensation_matrix
+
+        logging.debug("compensating matrix from\n%r\nto\n%r", mat, ret)
+
+        return ret
 
     def push_compensation_matrix(self, mat: Gf.Matrix4d) -> None:
         mat = Gf.Matrix4d(mat)  # Ensure mat is copied, just not referenced
         self._compensation_matrix *= mat
         self._compensation_matrices.append(mat)
 
+        logging.debug("pushing compensation matrix\r%r\nnew compensation matrix\n%r", mat, self._compensation_matrix)
+
     def pop_compensation_matrix(self) -> None:
         mat = self._compensation_matrices.pop()
+
+        logging.debug("%r", mat)
+
         self._compensation_matrix *= mat.GetInverse()
 
+        logging.debug("popping compensation matrix\n%r\nnew compensation matrix\n%r", mat, self._compensation_matrix)
+
+
 def compensate_xformable(xformable: UsdGeom.Xformable, compensate: Compensator) -> None:
-    mat = xformable.GetLocalTransformation()
+    mat = get_xformable_payload_matrix(xformable)
     op = xformable.MakeMatrixXform()
     op.Set(compensate(mat))
 
@@ -70,6 +79,12 @@ def get_axis_compensation_scale_transform(src_meters_per_unit: float, dst_meters
 def get_xformable_compensation_matrix(xformable: UsdGeom.Xformable) -> Gf.Matrix4d:
     op = xformable.GetXformOp(UsdGeom.XformOp.TypeTransform, opSuffix="compensation")
     return op.GetOpTransform(Usd.TimeCode()) if op else Gf.Matrix4d().SetIdentity()
+
+
+def get_xformable_payload_matrix(xformable: UsdGeom.Xformable) -> Gf.Matrix4d:
+    full_mat = xformable.GetLocalTransformation()
+    compensation_mat = get_xformable_compensation_matrix(xformable)
+    return full_mat * compensation_mat.GetInverse()
 
 
 def prim_is_marked_as_excluded_from_compensation(prim: Usd.Prim) -> bool:
@@ -110,6 +125,8 @@ def main(src_path: Path, dst_path: Path, dst_up_axis: Token, dst_meters_per_unit
 
         if not prims_iterator.IsPostVisit():
 
+            logging.debug("entering %s", prim)
+
             if prim.IsPseudoRoot():
                 compensate.push_compensation_matrix(axis_compensation_matrix)
             
@@ -126,6 +143,8 @@ def main(src_path: Path, dst_path: Path, dst_up_axis: Token, dst_meters_per_unit
         # Leaving a Prim
         
         else:
+            logging.debug("leaving %s", prim)
+
             # Only PseudoRoot and Xformable push compensation transforms
 
             if prim.IsPseudoRoot() or UsdGeom.Xformable(prim):
@@ -144,7 +163,8 @@ def main(src_path: Path, dst_path: Path, dst_up_axis: Token, dst_meters_per_unit
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--destination-up-axis", "-a", choices=["Y", "y", "Z", "z"], default="Z")
+    parser.add_argument("--debug", "-d", action="store_true", default=False)
+    parser.add_argument("--destination-up-axis", "-a", choices=[UsdGeom.Tokens.x, UsdGeom.Tokens.y], default="Z")
     parser.add_argument("--destination-meters-per-unit", "-u", type=float, default=1.0)
 
     parser.add_argument("source", type=Path)
@@ -152,4 +172,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    main(args.source, args.destination, _AXIS_NAME_TO_TOKEN[args.destination_up_axis.upper()], args.destination_meters_per_unit)
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
+
+    main(args.source, args.destination, args.destination_up_axis, args.destination_meters_per_unit)
