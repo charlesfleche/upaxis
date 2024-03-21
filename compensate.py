@@ -79,6 +79,19 @@ def compensate_pointbased(point_based: UsdGeom.PointBased, compensator: Compensa
     points.Set([compensator.compensate_local_vector(Gf.Vec3d(*vec)) for vec in points.Get()])
 
 
+def compensate_skel_binding_api(skel_binding_api: UsdSkel.BindingAPI, compensator: Compensator) -> None:
+    if attr := skel_binding_api.GetGeomBindTransformAttr():
+        attr.Set(compensator.compensate_global_matrix(attr.Get()))
+
+
+def compensate_skeleton(skeleton: UsdSkel.Skeleton, compensator: Compensator) -> None:
+    if attr := skeleton.GetBindTransformsAttr():
+        attr.Set([compensator.compensate_global_matrix(mat) for mat in attr.Get()])
+
+    if attr := skeleton.GetRestTransformsAttr():
+        attr.Set([compensator.compensate_local_matrix(mat) for mat in attr.Get()])
+
+
 def get_axis_compensation_rotation_transform(src: Token, dst: Token) -> Gf.Matrix4d:
     return _AXIS_COMPENSATION_ROTATION[src, dst]
 
@@ -151,6 +164,11 @@ def main(src_path: Path, dst_path: Path, dst_up_axis: Token, dst_meters_per_unit
             if point_based := UsdGeom.PointBased(prim):
                 compensate_pointbased(point_based, compensate)
 
+            if skel_binding_api := UsdSkel.BindingAPI(prim):
+                compensate_skel_binding_api(skel_binding_api, compensate)
+            
+            if skeleton := UsdSkel.Skeleton(prim):
+                compensate_skeleton(skeleton, compensate)
 
         # Leaving a Prim
         
