@@ -14,7 +14,7 @@ def "Axis_ExcludedFromCompensation" (
 
 def Mesh "UpwardTriangle_CompensateToZUpMeters_PayloadMoveUp1Meter"
 {
-	float3 xformOp:scale:compensation:metersPerUnit:metersToCentimeters = (10, 10, 10)
+	float3 xformOp:scale:compensation:metersPerUnit:metersToDecimeters = (10, 10, 10)
 	float3 xformOp:rotateXYZ:compensation:upAxis:ZToY = (-90, 0, 0)
 	float3 xformOp:translate:payload:moveUp1Unit = (0, 0, 1)
 
@@ -39,7 +39,7 @@ def Mesh "UpwardTriangle_CompensateToZUpMeters_PayloadMoveUp1Meter"
 		"xformOp:transform:compensation",
 		"!invert!xformOp:transform:compensation",
 
-		"xformOp:scale:compensation:metersPerUnit:metersToCentimeters",
+		"xformOp:scale:compensation:metersPerUnit:metersToDecimeters",
 		"xformOp:rotateXYZ:compensation:upAxis:ZToY",
 
 		"xformOp:translate:payload:moveUp1Unit"
