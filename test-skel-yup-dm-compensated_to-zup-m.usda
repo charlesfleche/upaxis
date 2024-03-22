@@ -3,7 +3,7 @@
 	defaultPrim = "SkelRoot"
 	startTimeCode = 1
 	endTimeCode = 10
-	metersPerUnit = 1
+	metersPerUnit = 0.1
 	upAxis = "Y"
 )
 

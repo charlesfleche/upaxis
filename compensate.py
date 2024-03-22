@@ -80,16 +80,18 @@ def compensate_pointbased(point_based: UsdGeom.PointBased, compensator: Compensa
 
 
 def compensate_skel_binding_api(skel_binding_api: UsdSkel.BindingAPI, compensator: Compensator) -> None:
+    return
     if attr := skel_binding_api.GetGeomBindTransformAttr():
-        attr.Set(compensator.compensate_global_matrix(attr.Get()))
+        if mat := attr.Get():
+            attr.Set(compensator.compensate_global_matrix(mat))
 
 
 def compensate_skeleton(skeleton: UsdSkel.Skeleton, compensator: Compensator) -> None:
-    if attr := skeleton.GetBindTransformsAttr():
-        attr.Set([compensator.compensate_global_matrix(mat) for mat in attr.Get()])
-
     if attr := skeleton.GetRestTransformsAttr():
         attr.Set([compensator.compensate_local_matrix(mat) for mat in attr.Get()])
+    return
+    if attr := skeleton.GetBindTransformsAttr():
+        attr.Set([compensator.compensate_global_matrix(mat) for mat in attr.Get()])
 
 
 def get_axis_compensation_rotation_transform(src: Token, dst: Token) -> Gf.Matrix4d:
@@ -194,7 +196,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--debug", "-d", action="store_true", default=False)
-    parser.add_argument("--destination-up-axis", "-a", choices=[UsdGeom.Tokens.x, UsdGeom.Tokens.y], default="Z")
+    parser.add_argument("--destination-up-axis", "-a", choices=[UsdGeom.Tokens.y, UsdGeom.Tokens.z], default=UsdGeom.Tokens.z)
     parser.add_argument("--destination-meters-per-unit", "-u", type=float, default=1.0)
 
     parser.add_argument("source", type=Path)
