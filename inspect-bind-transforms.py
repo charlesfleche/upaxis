@@ -27,6 +27,7 @@ def main(stage_path: Path) -> None:
         prim_geom_bind_transform = attr.Get()
 
         print(mesh)
+        print("Geom Bind Transform", prim_geom_bind_transform)
         for point in mesh.GetPointsAttr().Get():
             print("Point", point, "->", prim_geom_bind_transform.Transform(point))
 
