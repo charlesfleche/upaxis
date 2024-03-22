@@ -80,18 +80,17 @@ def compensate_pointbased(point_based: UsdGeom.PointBased, compensator: Compensa
 
 
 def compensate_skel_binding_api(skel_binding_api: UsdSkel.BindingAPI, compensator: Compensator) -> None:
-    return
     if attr := skel_binding_api.GetGeomBindTransformAttr():
         if mat := attr.Get():
-            attr.Set(compensator.compensate_global_matrix(mat))
+            attr.Set(compensator.compensate_local_matrix(mat))
 
 
 def compensate_skeleton(skeleton: UsdSkel.Skeleton, compensator: Compensator) -> None:
     if attr := skeleton.GetRestTransformsAttr():
         attr.Set([compensator.compensate_local_matrix(mat) for mat in attr.Get()])
-    return
+    
     if attr := skeleton.GetBindTransformsAttr():
-        attr.Set([compensator.compensate_global_matrix(mat) for mat in attr.Get()])
+        attr.Set([compensator.compensate_local_matrix(mat) for mat in attr.Get()])
 
 
 def get_axis_compensation_rotation_transform(src: Token, dst: Token) -> Gf.Matrix4d:
