@@ -36,9 +36,11 @@ class Compensator:
 
 
     def compensate_global_matrix(self, mat: Gf.Matrix4d) -> Gf.Matrix4d:
+        return mat * (self._compensation_matrix * self._compensation_matrices[0].GetInverse()).GetInverse()
+
         global_compensation_matrix = self._compensation_matrices[0]
         return _compensate_matrix(global_compensation_matrix, mat)
-        
+
 
     def compensate_local_matrix(self, mat: Gf.Matrix4d) -> Gf.Matrix4d:
         return _compensate_matrix(self._compensation_matrix, mat)
@@ -83,7 +85,7 @@ def compensate_pointbased(point_based: UsdGeom.PointBased, compensator: Compensa
 def compensate_skel_binding_api(skel_binding_api: UsdSkel.BindingAPI, compensator: Compensator) -> None:
     if attr := skel_binding_api.GetGeomBindTransformAttr():
         if mat := attr.Get():
-            attr.Set(compensator.compensate_local_matrix(mat))
+            attr.Set(compensator.compensate_global_matrix(mat))
 
 
 def compensate_skeleton(skeleton: UsdSkel.Skeleton, compensator: Compensator) -> None:
@@ -93,7 +95,7 @@ def compensate_skeleton(skeleton: UsdSkel.Skeleton, compensator: Compensator) ->
     
     if attr := skeleton.GetBindTransformsAttr():
         if mats := attr.Get():
-            attr.Set([compensator.compensate_local_matrix(mat) for mat in mats])
+            attr.Set([compensator.compensate_global_matrix(mat) for mat in mats])
 
 
 def get_axis_compensation_rotation_transform(src: Token, dst: Token) -> Gf.Matrix4d:

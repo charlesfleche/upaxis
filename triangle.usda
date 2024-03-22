@@ -1,0 +1,32 @@
+#usda 1.0
+(
+    defaultPrim = "Plane"
+    doc = "Blender v4.0.2"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "Plane"
+{
+    matrix4d xformOp:transform = ( (7.549790126404332e-8, 1, 0, 0), (-7.549790126404332e-8, 5.6999328827277325e-15, -1, 0), (-1, 7.549790126404332e-8, 7.549790126404332e-8, 0), (0, 1, 0, 1) )
+    uniform token[] xformOpOrder = ["xformOp:transform"]
+
+    def Mesh "Plane"
+    {
+        float3[] extent = [(0, 0, 0), (0.5, 0, 1)]
+        int[] faceVertexCounts = [3]
+        int[] faceVertexIndices = [2, 0, 1]
+        normal3f[] normals = [(0, -1, 0), (0, -1, 0), (0, -1, 0)] (
+            interpolation = "faceVarying"
+        )
+        point3f[] points = [(0, 0, 0), (0.5, 0, 0), (0, 0, 1)]
+        bool[] primvars:sharp_face = [1] (
+            interpolation = "uniform"
+        )
+        texCoord2f[] primvars:UVMap = [(0, 0), (0, 0), (0, 0)] (
+            interpolation = "faceVarying"
+        )
+        uniform token subdivisionScheme = "none"
+    }
+}
+

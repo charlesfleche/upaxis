@@ -1,0 +1,41 @@
+#usda 1.0
+(
+	defaultPrim = "Mesh"
+	metersPerUnit = .1
+	upAxis = "Y"
+)
+
+def "Axis_ExcludedFromCompensation" (
+	references = @./axis.usda@
+)
+{
+}
+
+def Mesh "Mesh" (
+)
+{
+    matrix4d xformOp:transform = (
+        (  0, 10,   0, 0),
+        (  0,  0, -10, 0),
+        (-10,  0,   0, 0),
+        (  0, 10,   0, 1)
+	)
+
+	uniform token[] xformOpOrder = ["xformOp:transform"]
+
+    int[] faceVertexCounts = [3]
+    int[] faceVertexIndices = [0, 1, 2]
+    point3f[] points = [
+        (.0, 0, 0),
+        (.5, 0, 0),
+        (.0, 0, 1)
+    ]
+    color3f[] primvars:displayColor = [
+        (0, 0, 0),
+        (1, 0, 0),
+        (0, 0, 1)
+    ] (
+        interpolation = "vertex"
+        elementSize = 1
+    )
+}

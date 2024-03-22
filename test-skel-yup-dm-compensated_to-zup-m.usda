@@ -51,17 +51,20 @@ def SkelRoot "SkelRoot"
 		uniform token[] joints = ["bottom", "bottom/top"]
 
         # Transformed as /SkelRoot/Skeleton/Mesh.primvars:skel:geomBindTransform
-		uniform matrix4d[] bindTransforms = [(
-                ( 0, 0, 1, 0),
-                ( 0, 1, 0, 0),
-                (-1, 0, 0, 0),
-                ( 0, 0, 1, 1)
-            ), (
-                ( 0, 0, 1, 0),
-                ( 0, 1, 0, 0),
-                (-1, 0, 0, 0),
-                (-1, 0, 1, 1)
-        )]
+		uniform matrix4d[] bindTransforms = [
+		(
+			(  0, 10,   0, 0),
+			(  0,  0, -10, 0),
+			(-10,  0,   0, 0),
+			(  0, 10,   0, 1)
+		),
+		(
+			(  0, 10,   0, 0),
+			(  0,  0, -10, 0),
+			(-10,  0,   0, 0),
+			(-10, 10,   0, 1)
+		)
+		]
 
 		uniform matrix4d[] restTransforms = [(
 				(1.0, 0.0, 0.0, 0.0),
@@ -89,7 +92,7 @@ def SkelRoot "SkelRoot"
             half3[] scales = [(1, 1, 1), (1, 1, 1)]
 		}
 
-		rel skel:animationSource = </SkelRoot/Skeleton/SkelAnimation>
+		#rel skel:animationSource = </SkelRoot/Skeleton/SkelAnimation>
 	}
 
 	def Mesh "Mesh" (
@@ -115,13 +118,18 @@ def SkelRoot "SkelRoot"
 		rel skel:skeleton = </SkelRoot/Skeleton>
 
         # GBT = Gf.Transform()
-        # GBT.SetRotation(Gf.Rotation(Gf.Vec3d(0, 1, 0), -90))
-        # GBT.SetTranslation(Gf.Vec3d( 0, 0, 1))
+		# s = Gf.Vec3d(10, 10, 10)
+		# r = Gf.Rotation(Gf.Vec3d(1, 0, 0), -90)
+		# r = r * Gf.Rotation(Gf.Vec3d(0, 0, 1), 90)
+		# t = Gf.Vec3d(0, 10, 0)
+		# GBT.SetScale(s)
+		# GBT.SetRotation(r)
+		# GBT.SetTranslation(t)
         matrix4d primvars:skel:geomBindTransform = (
-            ( 0, 0, 1, 0),
-            ( 0, 1, 0, 0),
-            (-1, 0, 0, 0),
-            ( 0, 0, 1, 1)
+			(  0, 10,   0, 0),
+			(  0,  0, -10, 0),
+			(-10,  0,   0, 0),
+			(  0, 10,   0, 1)
 		)
 
 		int[] primvars:skel:jointIndices = [0, 0, 1] (
