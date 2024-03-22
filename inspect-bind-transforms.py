@@ -25,13 +25,10 @@ def main(stage_path: Path) -> None:
             continue
 
         prim_geom_bind_transform = attr.Get()
-        prim_local_to_world_transform = cache.GetLocalToWorldTransform(prim)
-
-        mat = prim_geom_bind_transform * prim_local_to_world_transform
 
         print(mesh)
         for point in mesh.GetPointsAttr().Get():
-            print("Point", point, "->", mat.Transform(point))
+            print("Point", point, "->", prim_geom_bind_transform.Transform(point))
 
         targets = binding.GetSkeletonRel().GetTargets()
         if len(targets) != 1:
@@ -42,13 +39,10 @@ def main(stage_path: Path) -> None:
         if not skel:
             continue
 
-        prim_local_to_world_transform = cache.GetLocalToWorldTransform(skel_prim)
-
         print(skel)
         for bind_transform in skel.GetBindTransformsAttr().Get():
-            mat = bind_transform * prim_local_to_world_transform
-            joint_position = mat.Transform(_ORIGIN)
-            print(bind_transform, "->", mat, ", Position", joint_position)
+            joint_position = bind_transform.Transform(_ORIGIN)
+            print(bind_transform, ", joint position", joint_position)
 
 
 if __name__ == "__main__":
